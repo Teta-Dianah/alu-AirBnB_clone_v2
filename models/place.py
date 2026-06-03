@@ -40,6 +40,7 @@ class Place(BaseModel, Base):
         reviews = relationship("Review", backref="place",
                                cascade="all, delete-orphan")
         amenities = relationship("Amenity", secondary="place_amenity",
+                                 overlaps="place_amenities",
                                  viewonly=False)
     else:
         city_id = ""
