@@ -2,10 +2,7 @@
 # Sets up web servers for the deployment of web_static
 
 # Install Nginx if not already installed
-if ! dpkg -l | grep -q nginx; then
-    apt-get update -y
-    apt-get install -y nginx
-fi
+apt-get install -y nginx 2>/dev/null
 
 # Create required directories
 mkdir -p /data/web_static/releases/test/
@@ -29,11 +26,23 @@ ln -s /data/web_static/releases/test/ /data/web_static/current
 # Give ownership of /data/ to ubuntu user and group recursively
 chown -R ubuntu:ubuntu /data/
 
-# Add hbnb_static alias to Nginx config if not already present
-if ! grep -q "hbnb_static" /etc/nginx/sites-available/default; then
-    sed -i '/server_name _;/a \\n\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t}' \
-        /etc/nginx/sites-available/default
-fi
+# Configure Nginx to serve /hbnb_static using alias directive
+cat > /etc/nginx/sites-available/default << 'NGINXEOF'
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+	location /hbnb_static {
+		alias /data/web_static/current/;
+		index index.html index.htm;
+	}
+	location / {
+		try_files $uri $uri/ =404;
+	}
+}
+NGINXEOF
 
 # Restart Nginx
 service nginx restart
