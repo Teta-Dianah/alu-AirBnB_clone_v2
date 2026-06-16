@@ -17,10 +17,12 @@ def teardown(exception):
 @app.route('/states/<state_id>', strict_slashes=False)
 def states(state_id=None):
     """Display states or a specific state with its cities."""
-    states = storage.all(State)
-    if state_id is not None:
-        state_id = 'State.' + state_id
-    return render_template('9-states.html', states=states, state_id=state_id)
+    if state_id is None:
+        states = sorted(storage.all(State).values(), key=lambda s: s.name)
+        return render_template('9-states.html', states=states)
+    else:
+        state = storage.all(State).get('State.' + state_id)
+        return render_template('9-states.html', state=state)
 
 
 if __name__ == '__main__':
