@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Starts a Flask web application for states and their cities."""
+"""Starts a Flask web application with /states and /states/<id> routes."""
 from flask import Flask, render_template
 from models import storage
 from models.state import State
@@ -14,15 +14,21 @@ def teardown(exception):
 
 
 @app.route('/states', strict_slashes=False)
-@app.route('/states/<state_id>', strict_slashes=False)
-def states(state_id=None):
-    """Display states or a specific state with its cities."""
-    if state_id is None:
-        states = sorted(storage.all(State).values(), key=lambda s: s.name)
+@app.route('/states/<id>', strict_slashes=False)
+def states(id=None):
+    """Display the list of all States, or one State and its Cities."""
+    states = sorted(storage.all(State).values(), key=lambda s: s.name)
+
+    if id is None:
         return render_template('9-states.html', states=states)
-    else:
-        state = storage.all(State).get('State.' + state_id)
-        return render_template('9-states.html', state=state)
+
+    state = None
+    for s in states:
+        if s.id == id:
+            state = s
+            break
+
+    return render_template('9-states.html', state=state)
 
 
 if __name__ == '__main__':
