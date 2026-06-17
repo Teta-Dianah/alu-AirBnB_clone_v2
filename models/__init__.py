@@ -2,7 +2,9 @@
 """This module instantiates the appropriate storage object."""
 import os
 
-if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+storage_t = os.getenv('HBNB_TYPE_STORAGE')
+
+if storage_t == 'db':
     from models.engine.db_storage import DBStorage
     storage = DBStorage()
 else:

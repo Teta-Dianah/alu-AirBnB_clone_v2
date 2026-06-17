@@ -5,8 +5,6 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
-# Base is the foundation SQLAlchemy needs to map our classes to DB tables.
-# Every model that should be saved to the database must inherit from Base.
 Base = declarative_base()
 
 
@@ -37,11 +35,10 @@ class BaseModel:
                 self.updated_at = datetime.utcnow()
         else:
             self.id = str(uuid.uuid4())
-            self.created_at = datetime.utcnow()
-            self.updated_at = datetime.utcnow()
+            self.created_at = self.updated_at = datetime.utcnow()
 
     def __str__(self):
-        """Return a readable string like: [ClassName] (id) {attributes}"""
+        """Return string: [ClassName] (id) {attributes}"""
         d = {k: v for k, v in self.__dict__.items()
              if k != '_sa_instance_state'}
         return '[{}] ({}) {}'.format(type(self).__name__, self.id, d)
