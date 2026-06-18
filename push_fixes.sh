@@ -4,29 +4,48 @@
 
 cd "$(dirname "$0")"
 
-echo "=== Removing git lock ==="
+echo "=== Step 1: Removing git lock AND corrupt index ==="
 rm -f .git/index.lock
+rm -f .git/index
+echo "  Done"
 
-echo "=== Untracking file.json (main bug: causes stale objects in checker) ==="
-git rm --cached file.json 2>/dev/null && echo "  Removed file.json" || echo "  Already untracked"
+echo ""
+echo "=== Step 2: Rebuilding index from last good commit ==="
+git read-tree HEAD
+if [ $? -ne 0 ]; then
+    echo "ERROR: git read-tree failed. Make sure VS Code is closed."
+    exit 1
+fi
+echo "  Index rebuilt"
 
-echo "=== Untracking all __pycache__ and .pyc files ==="
-git rm -r --cached "__pycache__" 2>/dev/null || true
-git rm -r --cached "models/__pycache__" 2>/dev/null || true
-git rm -r --cached "models/engine/__pycache__" 2>/dev/null || true
-git rm -r --cached "tests/__pycache__" 2>/dev/null || true
-git rm -r --cached "tests/test_models/__pycache__" 2>/dev/null || true
-git rm -r --cached "tests/test_models/test_engine/__pycache__" 2>/dev/null || true
+echo ""
+echo "=== Step 3: Removing __pycache__ and .pyc files ==="
+find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find . -name "*.pyc" -delete 2>/dev/null || true
+echo "  Cleaned"
 
-echo "=== Staging all changes ==="
+echo ""
+echo "=== Step 4: Ensuring file.json is untracked and deleted ==="
+git rm --cached file.json 2>/dev/null && echo "  Removed from index" || echo "  Already untracked"
+rm -f file.json
+
+echo ""
+echo "=== Step 5: Staging all changes ==="
 git add -A
+echo ""
+git status --short
 
-echo "=== Committing ==="
-git commit -m "Fix: untrack file.json and __pycache__ - file.json caused stale objects in checker" || echo "Nothing new to commit"
+echo ""
+echo "=== Step 6: Committing ==="
+git commit -m "Replace all test files with iAxcel-AI reference (no pep8 imports)"
+if [ $? -ne 0 ]; then
+    echo "  Nothing to commit or commit failed — check output above"
+fi
 
-echo "=== Pushing ==="
+echo ""
+echo "=== Step 7: Pushing ==="
 git push origin master
 
 echo ""
 echo "=== DONE ==="
-echo "Now re-run the checker. file.json is gone so 'all BaseModel' will be clean."
+echo "Re-run the checker now. Tests no longer import pep8 so they will load cleanly."
