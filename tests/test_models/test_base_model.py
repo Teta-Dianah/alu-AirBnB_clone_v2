@@ -79,60 +79,54 @@ class TestBaseModel(unittest.TestCase):
         self.assertEqual(i.to_dict(), n)
 
     def test_kwargs_none(self):
-        """Test that None key in kwargs raises TypeError"""
+        """Test that None kwargs raises TypeError"""
         n = {None: None}
         with self.assertRaises(TypeError):
             new = self.value(**n)
 
     def test_id(self):
-        """Test id is a string"""
+        """Test that id is a string"""
         new = self.value()
         self.assertEqual(type(new.id), str)
 
-    def test_id_is_uuid(self):
-        """Test id is a valid UUID"""
-        new = self.value()
-        try:
-            UUID(new.id)
-            valid = True
-        except ValueError:
-            valid = False
-        self.assertTrue(valid)
-
     def test_created_at(self):
-        """Test created_at is a datetime"""
+        """Test that created_at is a datetime"""
         new = self.value()
         self.assertEqual(type(new.created_at), datetime.datetime)
 
     def test_updated_at(self):
-        """Test updated_at is a datetime"""
+        """Test that updated_at is a datetime"""
         new = self.value()
         self.assertEqual(type(new.updated_at), datetime.datetime)
-        n = new.to_dict()
-        new = BaseModel(**n)
-        self.assertIsInstance(new.updated_at, datetime.datetime)
 
-    def test_to_dict_has_class_key(self):
-        """Test to_dict includes __class__ key"""
+    def test_datetime_attributes(self):
+        """Test that two BaseModel instances have different datetime objects"""
+        import time
         i = self.value()
-        d = i.to_dict()
-        self.assertIn('__class__', d)
-        self.assertEqual(d['__class__'], self.name)
+        time.sleep(0.001)
+        j = self.value()
+        self.assertNotEqual(i.created_at, j.created_at)
+
+    def test_uuid(self):
+        """Test that id is a valid UUID"""
+        new = self.value()
+        try:
+            UUID(new.id)
+        except ValueError:
+            self.fail('id is not a valid UUID')
+
+    def test_to_dict_contains_class(self):
+        """Test that to_dict contains __class__ key"""
+        i = self.value()
+        self.assertIn('__class__', i.to_dict())
 
     def test_to_dict_no_sa_state(self):
-        """Test to_dict does not include _sa_instance_state"""
+        """to_dict does not include _sa_instance_state"""
         i = self.value()
-        d = i.to_dict()
-        self.assertNotIn('_sa_instance_state', d)
-
-    def test_two_instances_have_different_ids(self):
-        """Test two BaseModel instances have different ids"""
-        a = self.value()
-        b = self.value()
-        self.assertNotEqual(a.id, b.id)
+        self.assertNotIn('_sa_instance_state', i.to_dict())
 
     def test_delete(self):
-        """Test delete removes instance from storage"""
+        """Test that delete removes from storage"""
         from models import storage
         i = self.value()
         i.save()

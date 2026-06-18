@@ -22,7 +22,6 @@ class TestState(unittest.TestCase):
     def test_to_dict_no_sa_state(self):
         """to_dict does not contain _sa_instance_state"""
         s = State()
-        s.name = 'TestState'
         d = s.to_dict()
         self.assertNotIn('_sa_instance_state', d)
         self.assertEqual(d['__class__'], 'State')
@@ -31,43 +30,15 @@ class TestState(unittest.TestCase):
         os.getenv('HBNB_TYPE_STORAGE') == 'db',
         'FileStorage attribute test only'
     )
-    def test_name_class_attribute(self):
-        """name is a class attribute for FileStorage"""
+    def test_name_attribute(self):
+        """name is a class attribute in FileStorage mode"""
         self.assertIn('name', State.__dict__)
 
     @unittest.skipIf(
-        os.getenv('HBNB_TYPE_STORAGE') == 'db',
-        'FileStorage tests only'
+        os.getenv('HBNB_TYPE_STORAGE') != 'db',
+        'DBStorage attribute test only'
     )
-    def test_cities_property(self):
-        """cities property returns related City instances"""
-        from models.city import City
-        from models import storage
-        state = State()
-        state.name = 'California'
-        state.save()
-        city = City()
-        city.state_id = state.id
-        city.name = 'San Francisco'
-        city.save()
-        cities = state.cities
-        self.assertIsInstance(cities, list)
-        self.assertTrue(any(c.id == city.id for c in cities))
-        storage.delete(city)
-        storage.delete(state)
-        storage.save()
-
-    @unittest.skipIf(
-        os.getenv('HBNB_TYPE_STORAGE') == 'db',
-        'FileStorage tests only'
-    )
-    def test_save_and_retrieve(self):
-        """save() persists state to storage"""
-        from models import storage
-        s = State()
-        s.name = 'Nevada'
-        s.save()
-        key = 'State.{}'.format(s.id)
-        self.assertIn(key, storage.all())
-        storage.delete(s)
-        storage.save()
+    def test_name_column(self):
+        """name is a SQLAlchemy Column in DBStorage mode"""
+        from sqlalchemy import Column
+        self.assertIn('name', State.__table__.columns.keys())

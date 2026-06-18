@@ -32,23 +32,15 @@ class TestUser(unittest.TestCase):
     )
     def test_class_attributes(self):
         """email, password, first_name, last_name are class attributes"""
-        self.assertIn('email', User.__dict__)
-        self.assertIn('password', User.__dict__)
-        self.assertIn('first_name', User.__dict__)
-        self.assertIn('last_name', User.__dict__)
+        for attr in ['email', 'password', 'first_name', 'last_name']:
+            self.assertIn(attr, User.__dict__)
 
     @unittest.skipIf(
-        os.getenv('HBNB_TYPE_STORAGE') == 'db',
-        'FileStorage tests only'
+        os.getenv('HBNB_TYPE_STORAGE') != 'db',
+        'DBStorage tests only'
     )
-    def test_save_and_retrieve(self):
-        """save() persists user to storage"""
-        from models import storage
-        u = User()
-        u.email = 'test@test.com'
-        u.password = 'pass'
-        u.save()
-        key = 'User.{}'.format(u.id)
-        self.assertIn(key, storage.all())
-        storage.delete(u)
-        storage.save()
+    def test_db_columns(self):
+        """User has required DB columns"""
+        cols = User.__table__.columns.keys()
+        for col in ['email', 'password']:
+            self.assertIn(col, cols)

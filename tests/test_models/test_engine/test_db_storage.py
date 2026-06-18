@@ -203,7 +203,7 @@ class TestDBStorageConsoleIntegration(unittest.TestCase):
         return count
 
     def test_console_create_state_increments_db(self):
-        """console 'create State' adds a record to states table"""
+        """console create State adds a record to states table"""
         from io import StringIO
         from unittest.mock import patch
         from console import HBNBCommand
@@ -219,7 +219,7 @@ class TestDBStorageConsoleIntegration(unittest.TestCase):
             self.storage.save()
 
     def test_console_create_user_increments_db(self):
-        """console 'create User' adds a record to users table"""
+        """console create User adds a record to users table"""
         from io import StringIO
         from unittest.mock import patch
         from console import HBNBCommand
