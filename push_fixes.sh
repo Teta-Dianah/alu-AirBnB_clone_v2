@@ -33,7 +33,7 @@ git status --short
 
 echo ""
 echo "=== Step 5: Committing ==="
-git commit -m "Fix tasks 0,2,3: reliable nginx heredoc, clean test files, env.user=ubuntu"
+git commit -m "Fix tasks 6-10: align DB models with reference (always-defined columns, correct relationships)"
 if [ $? -ne 0 ]; then
     echo "  Nothing to commit"
 fi
