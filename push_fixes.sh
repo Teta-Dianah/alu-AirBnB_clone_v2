@@ -33,7 +33,7 @@ git status --short
 
 echo ""
 echo "=== Step 5: Committing ==="
-git commit -m "Fix: clean test files (no pep8, no null bytes), fix Amenity SQLAlchemy relationship"
+git commit -m "Fix tasks 0,2,3: reliable nginx heredoc, clean test files, env.user=ubuntu"
 if [ $? -ne 0 ]; then
     echo "  Nothing to commit"
 fi

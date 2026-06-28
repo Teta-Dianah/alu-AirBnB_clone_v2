@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sets up web servers for the deployment of web_static
 
-# Install Nginx
+# Install Nginx if not already installed
 apt-get update -y
 apt-get install -y nginx
 
@@ -9,8 +9,8 @@ apt-get install -y nginx
 mkdir -p /data/web_static/releases/test/
 mkdir -p /data/web_static/shared/
 
-# Create a test HTML file
-cat > /data/web_static/releases/test/index.html << 'HTMLEOF'
+# Create a fake HTML file to test Nginx configuration
+cat > /data/web_static/releases/test/index.html << 'HTML'
 <html>
   <head>
   </head>
@@ -18,28 +18,37 @@ cat > /data/web_static/releases/test/index.html << 'HTMLEOF'
     Holberton School
   </body>
 </html>
-HTMLEOF
+HTML
 
-# Remove existing symlink and recreate it
+# Delete existing symlink and recreate it every time
 rm -rf /data/web_static/current
-ln -s /data/web_static/releases/test/ /data/web_static/current
+ln -sf /data/web_static/releases/test/ /data/web_static/current
 
-# Give ownership of /data/ to ubuntu user and group recursively
+# Give ownership of /data/ to the ubuntu user and group recursively
 chown -R ubuntu:ubuntu /data/
 
-# Configure Nginx to serve /hbnb_static using alias directive
-python3 -c '
-import re
-with open("/etc/nginx/sites-available/default") as f:
-    content = f.read()
-content = re.sub(r"[ \t]*location\s+/hbnb_static\b[^}]*\}", "", content)
-block = "\n\tlocation /hbnb_static {\n\t\talias /data/web_static/current/;\n\t}"
-content = content.replace("server_name _;", "server_name _;" + block, 1)
-with open("/etc/nginx/sites-available/default", "w") as f:
-    f.write(content)
-'
+# Write Nginx config with hbnb_static alias (overwrite for reliability)
+cat > /etc/nginx/sites-available/default << 'NGINX'
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
 
-# Restart Nginx
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name _;
+
+    location /hbnb_static {
+        alias /data/web_static/current/;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+NGINX
+
+# Restart Nginx to apply the changes
 service nginx restart
 
 exit 0
